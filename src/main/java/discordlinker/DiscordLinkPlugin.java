@@ -47,7 +47,7 @@ public class DiscordLinkPlugin extends JavaPlugin {
         logInfo(getMessage("db.checking", "MySQL ellenőrzés..."));
 
         try {
-            mysql = new MySQLManager(cfgHost, cfgPort, cfgDatabase, cfgUser, cfgPassword, cfgTable);
+            mysql = new MySQLManager(cfgHost, cfgPort, cfgDatabase, cfgUser, cfgPassword, cfgTable, this);
             mysql.createTableIfNotExists();
             snapshotMysqlConfig();
             logInfo(getMessage("db.connect_success", "MySQL kapcsolat sikeres. Plugin engedélyezve."));
@@ -163,7 +163,7 @@ public class DiscordLinkPlugin extends JavaPlugin {
             logInfo(getMessage("reload.db_config_changed", "MySQL konfiguráció változott — újracsatlakozás kísérlete..."));
             MySQLManager newMysql = null;
             try {
-                newMysql = new MySQLManager(cfgHost, cfgPort, cfgDatabase, cfgUser, cfgPassword, cfgTable);
+                newMysql = new MySQLManager(cfgHost, cfgPort, cfgDatabase, cfgUser, cfgPassword, cfgTable, this);
                 newMysql.createTableIfNotExists();
             } catch (SQLException ex) {
                 String msg = getMessage("reload.mysql_failed", "Reload fail, nincs mysql kapcsolat: %error%").replace("%error%", ex.getMessage());

@@ -6,6 +6,19 @@ mysql:
   user: mc_user
   password: ""
   table: discord_link_requests
+  # HikariCP connection pool settings
+  pool:
+    max_pool_size: 4
+    min_idle: 1
+    connection_timeout_ms: 5000
+    max_lifetime_ms: 1800000 # 30 minutes
+    idle_timeout_ms: 600000  # 10 minutes
+
+  # Reconnect/backoff settings
+  reconnect:
+    attempts: 3
+    initial_delay_ms: 500
+    max_delay_ms: 5000
 
 # Kód generálás
 code:

@@ -14,6 +14,10 @@ db:
   connect_success: "MySQL kapcsolat sikeres. Plugin engedélyezve."
   connect_failure: "Nem sikerült kapcsolódni a MySQL-hez — plugin letiltva."
   table_created: "Tábla létrehozva: %table%"
+  connect_test_success: "DB kapcsolat teszt sikeres."
+  reconnect_attempt: "Próbálok újracsatlakozni az adatbázishoz..."
+  reconnect_success: "Sikeres újracsatlakozás az adatbázishoz."
+  reconnect_failed: "Nem sikerült újracsatlakozni az adatbázishoz: %error%"
 
 # Hibák
 errors:

@@ -14,6 +14,10 @@ db:
   connect_success: "MySQL connection successful. Plugin enabled."
   connect_failure: "Failed to connect to MySQL — plugin disabled."
   table_created: "Table created: %table%"
+  connect_test_success: "DB connection test succeeded."
+  reconnect_attempt: "Attempting to reconnect to DB..."
+  reconnect_success: "Successfully reconnected to DB."
+  reconnect_failed: "Failed to reconnect to DB: %error%"
 
 # Errors
 errors:
