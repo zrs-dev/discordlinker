@@ -1,0 +1,17 @@
+name: DiscordLinker
+main: discordlinker.DiscordLinkPlugin
+version: 0.0.1
+api-version: 1.21
+description: Összeköti a Minecraft fiókot Discorddal (DB ellenőrzés, kód generálás)
+authors: [zrs_dev]
+
+commands:
+  discordlinker:
+    description: Admin parancsok a DiscordLinker pluginhoz.
+    usage: /<command> reload
+    permission: discordlinker.reload
+    permission-message: '&c[Nincs jogosultságod a parancs használatához]'
+permissions:
+  discordlinker.reload:
+    description: Reload the DiscordLinker plugin configuration.
+    default: op

@@ -1,0 +1,17 @@
+# MySQL kapcsolat (állítsd be a szervered adatait)
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  database: minecraft
+  user: mc_user
+  password: ""
+  table: discord_link_requests
+
+# Kód generálás
+code:
+  length: 8
+  expiration_minutes: 5
+
+# Alapértelmezett nyelv (ha nincs a játékos nyelvét támogató fájl)
+# Lehetséges értékek: hu, hu-HU, en, en-US, de, de-DE, stb.
+default_lang: hu
