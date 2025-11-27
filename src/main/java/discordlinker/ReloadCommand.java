@@ -18,12 +18,12 @@ public class ReloadCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         // permission check: OP or permission node
         if (!(sender.isOp() || sender.hasPermission("discordlinker.reload"))) {
-            plugin.sendMessage(sender, NamedTextColor.RED, plugin.getMessage("reload.no_permission", "Nincs jogosultságod a reload parancshoz."));
+            plugin.sendMessage(sender, NamedTextColor.RED, plugin.getMessage("reload.no_permission", "You do not have permission to run reload."));
             return true;
         }
 
         if (args.length == 0 || !"reload".equalsIgnoreCase(args[0])) {
-            plugin.sendMessage(sender, NamedTextColor.YELLOW, plugin.getMessage("reload.usage", "Használat: /discordlinker reload"));
+            plugin.sendMessage(sender, NamedTextColor.YELLOW, plugin.getMessage("reload.usage", "Usage: /discordlinker reload"));
             return true;
         }
 
