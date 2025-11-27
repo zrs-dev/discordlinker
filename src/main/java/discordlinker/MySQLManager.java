@@ -222,7 +222,17 @@ public class MySQLManager {
         }
     }
 
-    public void insertNewCode(String mcName, String uuid, String code, Timestamp created, Timestamp expires) throws SQLException {
+    public boolean insertNewCode(String mcName, String uuid, String code, Timestamp created, Timestamp expires) throws SQLException {
+        // Először ellenőrizz, hogy létezik-e már a record
+        String selectSql = "SELECT mc_name FROM `" + tableName + "` WHERE mc_name = ?";
+        boolean recordExists;
+        try (Connection c = getConnectionWithRetry(); PreparedStatement ps = c.prepareStatement(selectSql)) {
+            ps.setString(1, mcName);
+            try (ResultSet rs = ps.executeQuery()) {
+                recordExists = rs.next();
+            }
+        }
+        
         String ins = "INSERT INTO `" + tableName + "` (mc_name, mc_uuid, generated_code, created_at, expiration_at, accepted, discord_userid, reject_reason) " +
                 "VALUES (?, ?, ?, ?, ?, NULL, NULL, NULL) " +
                 "ON DUPLICATE KEY UPDATE mc_uuid = VALUES(mc_uuid), generated_code = VALUES(generated_code), created_at = VALUES(created_at), expiration_at = VALUES(expiration_at), accepted = NULL, discord_userid = NULL, reject_reason = NULL";
@@ -234,6 +244,9 @@ public class MySQLManager {
             ps.setTimestamp(5, expires);
             ps.executeUpdate();
         }
+        
+        // Csak akkor true, ha új record volt (nem UPDATE)
+        return !recordExists;
     }
 
     public boolean updateCodeIfNotLinked(String mcName, String uuid, String code, Timestamp created, Timestamp expires) throws SQLException {

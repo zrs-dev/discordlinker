@@ -18,7 +18,10 @@ import java.sql.SQLException;
 
 public class DiscordLinkPlugin extends JavaPlugin {
     private MySQLManager mysql;
-    private LangController langController;
+    private MessageManager messageManager;
+    private WebhookManager webhookManager;
+    private PlayerUUIDCache uuidCache;
+    private APIClient apiClient;
 
     private String cfgHost;
     private int cfgPort;
@@ -37,77 +40,129 @@ public class DiscordLinkPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        saveDefaultLanguageFiles();
+        saveDefaultMessagesFile();
+        saveDefaultWebhookTemplates();
         loadMysqlConfigFromConfig();
 
-        // Nyelvkezelő inicializálása
-        langController = new LangController(this);
+        // Üzenet kezelő inicializálása
+        messageManager = new MessageManager(this);
+        
+        // UUID Cache inicializálása
+        uuidCache = new PlayerUUIDCache();
 
-        logInfo(getMessage("plugin.starting", "Plugin indítása..."));
-        logInfo(getMessage("db.checking", "MySQL ellenőrzés..."));
+        logInfo(getMessage("plugin.starting", "Starting plugin..."));
+        logInfo(getMessage("database.checking", "Checking MySQL connection..."));
 
         try {
             mysql = new MySQLManager(cfgHost, cfgPort, cfgDatabase, cfgUser, cfgPassword, cfgTable, this);
             mysql.createTableIfNotExists();
             snapshotMysqlConfig();
-            logInfo(getMessage("db.connect_success", "MySQL kapcsolat sikeres. Plugin engedélyezve."));
-            logInfo(getMessage("db.table_created", "Tábla létrehozva: %table%").replace("%table%", cfgTable));
+            logInfo(getMessage("database.connect_success", "MySQL connection successful. Plugin enabled."));
+            logInfo(getMessage("database.table_created", "Table created: %table%").replace("%table%", cfgTable));
         } catch (SQLException e) {
-            logError(getMessage("db.connect_failure", "Nem sikerült kapcsolódni a MySQL-hez — plugin letiltva."));
-            logError(getMessage("errors.db_check_error", "Hiba: %error%").replace("%error%", e.getMessage()));
+            logError(getMessage("database.connect_failure", "Failed to connect to MySQL — plugin disabled."));
+            logError(getMessage("database.check_error", "DB error: %error%").replace("%error%", e.getMessage()));
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
         PluginManager pm = getServer().getPluginManager();
-        Listener loginListener = new LoginListener(this, mysql, langController);
+        
+        // API kliens inicializálása (opcionális)
+        boolean apiEnabled = getConfig().getBoolean("discord.api.enabled", false);
+        String apiUrl = getConfig().getString("discord.api.url", "");
+        String apiKey = getConfig().getString("discord.api.api_key", "");
+        String encryptionAlgo = getConfig().getString("discord.api.encryption_algorithm", "aes-256-cbc");
+        
+        if (apiEnabled && !apiUrl.isEmpty() && !apiKey.isEmpty()) {
+            apiClient = new APIClient(this, apiUrl, apiKey, encryptionAlgo);
+            logInfo("[API] API client initialized: " + apiUrl + " (" + encryptionAlgo + ")");
+        } else {
+            apiClient = null;
+            if (apiEnabled) {
+                logWarn("[API] API enabled but URL or API Key is missing!");
+            }
+        }
+        
+        // LoginListener inicializálása APIClient-tel
+        Listener loginListener = new LoginListener(this, mysql, messageManager, apiClient);
         pm.registerEvents(loginListener, this);
+        
+        // Discord Webhook inicializálása (join és left külön)
+        String joinWebhookUrl = getConfig().getString("discord.join.webhook_url", "");
+        String joinEmbedType = getConfig().getString("discord.join.embed_type", "embed");
+        String leftWebhookUrl = getConfig().getString("discord.left.webhook_url", "");
+        String leftEmbedType = getConfig().getString("discord.left.embed_type", "embed");
+        
+        webhookManager = new WebhookManager(this, joinWebhookUrl, joinEmbedType, leftWebhookUrl, leftEmbedType);
+        
+        if (webhookManager.isJoinEnabled() || webhookManager.isLeftEnabled()) {
+            logInfo(getMessage("webhook.enabled", "Discord Webhook enabled."));
+            Listener webhookListener = new WebhookEventListener(this, webhookManager, uuidCache, apiClient);
+            pm.registerEvents(webhookListener, this);
+        } else {
+            logWarn(getMessage("webhook.disabled", "Discord Webhook disabled or no URL configured."));
+        }
 
         if (getCommand("discordlinker") != null) {
             ReloadCommand reloadCmd = new ReloadCommand(this);
             this.getCommand("discordlinker").setExecutor(reloadCmd);
             this.getCommand("discordlinker").setTabCompleter(reloadCmd);
         } else {
-            logWarn(getMessage("plugin.command_not_found", "plugin.yml nem tartalmaz 'discordlinker' parancsot!"));
+            logWarn(getMessage("plugin.command_not_found", "plugin.yml does not contain the 'discordlinker' command!"));
         }
 
-        logInfo(getMessage("plugin.enabled", "DiscordLinker engedélyezve."));
+        logInfo(getMessage("plugin.enabled", "DiscordLinker enabled."));
     }
     @Override
     public void onDisable() {
         if (mysql != null) mysql.close();
-        logInfo(getMessage("plugin.disabled", "DiscordLinker leállítva."));
+        logInfo(getMessage("plugin.disabled", "DiscordLinker disabled."));
     }
 
     public String getMessage(String path, String fallback) {
-        if (langController == null) return fallback;
-        return langController.getMessage(path, fallback);
+        if (messageManager == null) return fallback;
+        return messageManager.getMessage(path, fallback);
     }
 
-    public LangController getLangController() {
-        return langController;
+    public MessageManager getMessageManager() {
+        return messageManager;
+    }
+
+    public WebhookManager getWebhookManager() {
+        return webhookManager;
     }
 
     /**
-     * Mentés az alapértelmezett nyelvfájlokat a 'langs' mappába
+     * messages.yml mentése
      */
-    private void saveDefaultLanguageFiles() {
-        String[] langFiles = {"hu_messages.yml", "en_messages.yml"};
-        for (String fileName : langFiles) {
-            saveLanguageResource(fileName);
+    private void saveDefaultMessagesFile() {
+        File messagesFile = new File(getDataFolder(), "messages.yml");
+        if (!messagesFile.exists()) {
+            saveResource("messages.yml", false);
         }
     }
 
     /**
-     * Egy nyelvfájl mentése
+     * Webhook sablonok mentése
      */
-    private void saveLanguageResource(String fileName) {
-        File langsDir = new File(getDataFolder(), "langs");
-        if (!langsDir.exists()) {
-            langsDir.mkdirs();
+    private void saveDefaultWebhookTemplates() {
+        String[] webhookFiles = {"joined.json", "disconnected.json"};
+        for (String fileName : webhookFiles) {
+            saveWebhookResource(fileName);
         }
-        File langFile = new File(langsDir, fileName);
-        if (!langFile.exists()) {
-            saveResource("langs/" + fileName, false);
+    }
+
+    /**
+     * Egy webhook sablon mentése
+     */
+    private void saveWebhookResource(String fileName) {
+        File webhooksDir = new File(getDataFolder(), "webhooks");
+        if (!webhooksDir.exists()) {
+            webhooksDir.mkdirs();
+        }
+        File webhookFile = new File(webhooksDir, fileName);
+        if (!webhookFile.exists()) {
+            saveResource("webhooks/" + fileName, false);
         }
     }
 
@@ -137,11 +192,11 @@ public class DiscordLinkPlugin extends JavaPlugin {
         try {
             tmpCfg.load(configFile);
         } catch (InvalidConfigurationException ice) {
-            String msg = "config.yml syntax hibás: " + ice.getMessage();
+            String msg = "config.yml syntax error: " + ice.getMessage();
             logError(msg);
             return new ReloadResult(false, msg, NamedTextColor.RED);
         } catch (IOException ioe) {
-            String msg = "config.yml olvasási hiba: " + ioe.getMessage();
+            String msg = "config.yml read error: " + ioe.getMessage();
             logError(msg);
             return new ReloadResult(false, msg, NamedTextColor.RED);
         }
@@ -149,8 +204,13 @@ public class DiscordLinkPlugin extends JavaPlugin {
         reloadConfig();
         loadMysqlConfigFromConfig();
         
-        // Nyelvfájlok újratöltése
-        langController.reloadLanguages();
+        // Üzenetek és webhook sablonok újratöltése
+        if (messageManager != null) {
+            messageManager.reloadMessages();
+        }
+        if (webhookManager != null) {
+            webhookManager.reloadTemplates();
+        }
 
         boolean changed = !equalsNullable(lastHost, cfgHost)
                 || lastPort != cfgPort
@@ -166,7 +226,7 @@ public class DiscordLinkPlugin extends JavaPlugin {
                 newMysql = new MySQLManager(cfgHost, cfgPort, cfgDatabase, cfgUser, cfgPassword, cfgTable, this);
                 newMysql.createTableIfNotExists();
             } catch (SQLException ex) {
-                String msg = getMessage("reload.mysql_failed", "Reload fail, nincs mysql kapcsolat: %error%").replace("%error%", ex.getMessage());
+                String msg = getMessage("reload.mysql_failed", "Reload failed, no MySQL connection: %error%").replace("%error%", ex.getMessage());
                 logError(msg);
                 if (newMysql != null) newMysql.close();
                 return new ReloadResult(false, msg, NamedTextColor.RED);
@@ -175,13 +235,12 @@ public class DiscordLinkPlugin extends JavaPlugin {
             if (mysql != null) mysql.close();
             mysql = newMysql;
             snapshotMysqlConfig();
-            String msg = getMessage("reload.mysql_success", "MySQL kapcsolat frissítve.");
+            String msg = getMessage("reload.mysql_success", "MySQL connection refreshed.");
             logInfo(msg);
         } else {
-            logInfo(getMessage("reload.db_config_not_changed", "MySQL konfiguráció nem változott."));
+            logInfo(getMessage("reload.db_config_not_changed", "MySQL configuration did not change."));
         }
-
-        String successMsg = getMessage("reload.success", "Plugin újratöltve.");
+        String successMsg = getMessage("reload.success", "Plugin reloaded.");
         logInfo(successMsg);
         return new ReloadResult(true, successMsg, NamedTextColor.GREEN);
     }
