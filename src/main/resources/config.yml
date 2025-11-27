@@ -28,3 +28,31 @@ code:
 # Alapértelmezett nyelv (ha nincs a játékos nyelvét támogató fájl)
 # Lehetséges értékek: hu, hu-HU, en, en-US, de, de-DE, stb.
 default_lang: hu
+
+# Discord Webhook (üres = letiltva)
+# Join és Left webhookok külön állíthatók be
+# Embed típus: "embed" (standard Discord embed) vagy "components" (ComponentV2 - modernebb, interaktív)
+discord:
+  join:
+    webhook_url: ""
+    embed_type: "embed"
+  left:
+    webhook_url: ""
+    embed_type: "embed"
+  
+  # Saját API szerver integráció (opcionális)
+  # Titkosított POST requestet küld a megadott szerverre, amikor új játékos kerül az adatbázisba (1x)
+  # Payload: felhasználónév és UUID titkosítva
+  api:
+    enabled: false
+    # API endpoint URL (HTTP vagy HTTPS)
+    # Pl: http://example.com:8080/api/minecraft/joinrequest
+    url: "http://localhost:8080/api/minecraft/joinrequest"
+    # API kulcs (titkosításhoz, minimum 32 karakter ajánlott)
+    api_key: "your_secret_api_key_here_minimum_32_chars"
+    # Titkosítási algoritmus (reverzibilis — lehet dekódolni)
+    # "aes-256-cbc" - AES-256 (ajánlott, erős)
+    # "aes-128-cbc" - AES-128 (gyorsabb, kevésbé biztos)
+    # MEGJEGYZÉS: Hash-alapú algoritmusok (md5, sha256, sha512, argon2) NEM dekódolhatók!
+    # Csak reverzibilis algoritmusok használhatók, ha az API szervernek dekódolnia kell az adatot.
+    encryption_algorithm: "aes-256-cbc"
