@@ -28,12 +28,12 @@ public class LangController {
         File langsDir = new File(plugin.getDataFolder(), "langs");
         if (!langsDir.exists()) {
             langsDir.mkdirs();
-            plugin.getLogger().info("[LangController] 'langs' mappa létrehozva.");
+            plugin.getLogger().info("[LangController] 'langs' folder created.");
         }
 
         File[] files = langsDir.listFiles((dir, name) -> name.endsWith("_messages.yml"));
         if (files == null || files.length == 0) {
-            plugin.getLogger().warning("[LangController] Nincs nyelvfájl a 'langs' mappában!");
+            plugin.getLogger().warning("[LangController] No language files found in 'langs' folder!");
             return;
         }
 
@@ -42,18 +42,18 @@ public class LangController {
             try {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(file);
                 langCache.put(langCode, config);
-                plugin.getLogger().info("[LangController] Nyelvfájl betöltve: " + langCode);
+                plugin.getLogger().info("[LangController] Language file loaded: " + langCode);
             } catch (Exception e) {
-                plugin.getLogger().severe("[LangController] Hiba a " + file.getName() + " betöltésekor: " + e.getMessage());
+                plugin.getLogger().severe("[LangController] Error loading " + file.getName() + ": " + e.getMessage());
             }
         }
 
         // Ellenőrizd, hogy az alapértelmezett nyelv betöltődött-e
         if (!langCache.containsKey(defaultLang)) {
-            plugin.getLogger().warning("[LangController] Az alapértelmezett nyelv '" + defaultLang + "' nem elérhető!");
+            plugin.getLogger().warning("[LangController] The default language '" + defaultLang + "' is not available!");
             if (!langCache.isEmpty()) {
                 defaultLang = langCache.keySet().iterator().next();
-                plugin.getLogger().info("[LangController] Alapértelmezett nyelv módosítva: " + defaultLang);
+                plugin.getLogger().info("[LangController] Default language changed to: " + defaultLang);
             }
         }
     }
@@ -152,7 +152,7 @@ public class LangController {
         playerLanguages.clear();
         this.defaultLang = plugin.getConfig().getString("default_lang", "hu");
         loadAllLanguages();
-        plugin.getLogger().info("[LangController] Nyelvfájlok újratöltve.");
+        plugin.getLogger().info("[LangController] Language files reloaded.");
     }
 
     /**
@@ -174,5 +174,24 @@ public class LangController {
      */
     public String getErrorMessage(String key, String fallback) {
         return getMessage(key, fallback);
+    }
+
+    /**
+     * Nyelvkód lekérése egy localeból (pl. "en_us" -> "en", "hu_hu" -> "hu")
+     * Szükséges login előtt, amikor még nincs Player objektum
+     */
+    public String getLangCodeFromLocale(String mcLocale) {
+        String langCode = convertMCLocaleToLangCode(mcLocale);
+        if (!langCache.containsKey(langCode)) {
+            langCode = defaultLang;
+        }
+        return langCode;
+    }
+
+    /**
+     * Az alapértelmezett nyelvkód lekérése
+     */
+    public String getDefaultLangCode() {
+        return defaultLang;
     }
 }
