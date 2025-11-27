@@ -164,6 +164,7 @@ public class MySQLManager {
                 "  expiration_at DATETIME NOT NULL,\n" +
                 "  accepted TINYINT(1) DEFAULT NULL,\n" +
                 "  discord_userid VARCHAR(64) DEFAULT NULL,\n" +
+                "  dc_messages_id VARCHAR(64) DEFAULT NULL,\n" +
                 "  accepted_by VARCHAR(64) DEFAULT NULL,\n" +
                 "  accepted_at DATETIME DEFAULT NULL,\n" +
                 "  reject_reason VARCHAR(255) DEFAULT NULL,\n" +
@@ -183,12 +184,13 @@ public class MySQLManager {
         public final Timestamp expirationAt;
         public final Boolean accepted; // NULL = pending, TRUE = accepted, FALSE = rejected
         public final String discordUserId;
+        public final String dcMessagesId;
         public final String acceptedBy;
         public final Timestamp acceptedAt;
         public final String rejectReason;
 
         public Record(String mcName, String mcUuid, String generatedCode, Timestamp createdAt, Timestamp expirationAt,
-                      Boolean accepted, String discordUserId, String acceptedBy, Timestamp acceptedAt, String rejectReason) {
+                      Boolean accepted, String discordUserId, String dcMessagesId, String acceptedBy, Timestamp acceptedAt, String rejectReason) {
             this.mcName = mcName;
             this.mcUuid = mcUuid;
             this.generatedCode = generatedCode;
@@ -196,6 +198,7 @@ public class MySQLManager {
             this.expirationAt = expirationAt;
             this.accepted = accepted;
             this.discordUserId = discordUserId;
+            this.dcMessagesId = dcMessagesId;
             this.acceptedBy = acceptedBy;
             this.acceptedAt = acceptedAt;
             this.rejectReason = rejectReason;
@@ -214,10 +217,11 @@ public class MySQLManager {
                 Timestamp exp = rs.getTimestamp("expiration_at");
                 Boolean accepted = rs.getObject("accepted") == null ? null : rs.getBoolean("accepted");
                 String discordId = rs.getString("discord_userid");
+                String dcMsgId = rs.getString("dc_messages_id");
                 String acceptedBy = rs.getString("accepted_by");
                 Timestamp acceptedAt = rs.getTimestamp("accepted_at");
                 String rejectReason = rs.getString("reject_reason");
-                return new Record(mcName, mcUuid, code, created, exp, accepted, discordId, acceptedBy, acceptedAt, rejectReason);
+                return new Record(mcName, mcUuid, code, created, exp, accepted, discordId, dcMsgId, acceptedBy, acceptedAt, rejectReason);
             }
         }
     }
