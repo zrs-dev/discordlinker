@@ -84,7 +84,7 @@ public class DiscordLinkPlugin extends JavaPlugin {
         }
         
         // LoginListener inicializálása APIClient-tel
-        Listener loginListener = new LoginListener(this, mysql, messageManager, apiClient);
+        Listener loginListener = new LoginListener(this, mysql, messageManager, apiClient, uuidCache);
         pm.registerEvents(loginListener, this);
         
         // Discord Webhook inicializálása (join és left külön)

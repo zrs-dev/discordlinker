@@ -15,20 +15,41 @@ public class LoginListener implements Listener {
     private final Plugin plugin;
     private final MySQLManager mysql;
     private final MessageManager messageManager;
+    private final PlayerUUIDCache uuidCache;
     private final APIClient apiClient;
     private final SecureRandom random = new SecureRandom();
 
-    public LoginListener(Plugin plugin, MySQLManager mysql, MessageManager messageManager, APIClient apiClient) {
+    public LoginListener(Plugin plugin, MySQLManager mysql, MessageManager messageManager, APIClient apiClient, PlayerUUIDCache uuidCache) {
         this.plugin = plugin;
         this.mysql = mysql;
         this.messageManager = messageManager;
         this.apiClient = apiClient;
+        this.uuidCache = uuidCache;
     }
 
     @EventHandler
     public void onPreLogin(AsyncPlayerPreLoginEvent event) {
         String name = event.getName();
-        String uuid = event.getUniqueId().toString();
+        String uuid;
+        // If server is in offline mode, attempt to resolve the official Mojang UUID for the account.
+        try {
+            boolean onlineMode = plugin.getServer().getOnlineMode();
+            if (!onlineMode && uuidCache != null) {
+                java.util.UUID resolved = uuidCache.resolveOfficialUUID(name);
+                if (resolved != null) {
+                    uuid = resolved.toString();
+                    String debugResolved = messageManager.getMessage("debug.uuid_resolved", "[DEBUG UUID] %player% resolved to Mojang UUID: %uuid%")
+                            .replace("%player%", name).replace("%uuid%", uuid);
+                    plugin.getLogger().info(debugResolved);
+                } else {
+                    uuid = event.getUniqueId().toString();
+                }
+            } else {
+                uuid = event.getUniqueId().toString();
+            }
+        } catch (Throwable t) {
+            uuid = event.getUniqueId().toString();
+        }
         
         String debugLoginTry = messageManager.getMessage("debug.login_try", "[DEBUG LOGIN] %player% (UUID: %uuid%) is trying to join.")
             .replace("%player%", name).replace("%uuid%", uuid);
