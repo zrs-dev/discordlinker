@@ -1,0 +1,70 @@
+# DiscordLinker Plugin Messages
+# Simple flat message configuration (English defaults)
+
+# Plugin messages
+plugin:
+  starting: "Starting plugin..."
+  enabled: "DiscordLinker enabled."
+  disabled: "DiscordLinker disabled."
+  command_not_found: "plugin.yml does not contain the 'discordlinker' command!"
+
+# Database messages
+database:
+  checking: "Checking MySQL connection..."
+  connect_success: "MySQL connection successful. Plugin enabled."
+  table_created: "Table created: %table%"
+  connect_failure: "Failed to connect to MySQL — plugin disabled."
+  check_error: "DB error: %error%"
+  connection_lost: "Database connection lost!"
+  reconnecting: "Attempting to reconnect to the database..."
+  reconnect_success: "Successfully reconnected to the database."
+  reconnect_failed: "Failed to reconnect: %error%"
+  db_connect_test_success: "DB connection test succeeded."
+  reconnect_attempt: "Attempting to reconnect to DB..."
+
+# Login / Kick messages
+login:
+  not_linked: "Your account is not linked. Code: %code%\nValid for: %minutes% minutes"
+  rejected: "Your login was rejected for the following reason: %reason%"
+  rejected_default: "Your login request was rejected."
+  pending: "Your login is pending; please wait."
+  error: "Server error. Please try again later."
+
+# Reload / Command messages
+reload:
+  no_permission: "You do not have permission to run reload."
+  usage: "Usage: /discordlinker reload"
+  success: "Plugin reloaded."
+  mysql_failed: "Reload failed, no MySQL connection: %error%"
+  mysql_success: "MySQL connection refreshed."
+  db_config_changed: "MySQL configuration changed — attempting reconnect..."
+  db_config_not_changed: "MySQL configuration did not change."
+
+# Webhook messages (optional - JSON templates can be used)
+webhook:
+  enabled: "Discord Webhook enabled."
+  disabled: "Discord Webhook disabled or no URL configured."
+  join_title: "Player Joined"
+  join_desc: "%player% has joined the server!"
+  quit_title: "Player Left"
+  quit_desc: "%player% has left the server."
+
+# Debug / Console-only messages (developers can translate these too)
+debug:
+  login_try: "[DEBUG LOGIN] %player% (UUID: %uuid%) is trying to join."
+  login_no_record: "[DEBUG LOGIN] %player% — no record, generating new code."
+  kick_not_linked: "[DEBUG KICK] %player% kicked (not_linked): %message%"
+  kick_rejected: "[DEBUG KICK] %player% kicked (rejected): %message%"
+  kick_pending: "[DEBUG KICK] %player% kicked (pending): %message%"
+  login_allowed: "[DEBUG LOGIN] %player% — allowed to join."
+  login_rejected: "[DEBUG LOGIN] %player% — rejected."
+  login_pending: "[DEBUG LOGIN] %player% — pending."
+  login_code_expired: "[DEBUG LOGIN] %player% — code expired, generating new code."
+  login_code_valid_not_linked: "[DEBUG LOGIN] %player% — code valid but not linked yet."
+  error_sql: "[DEBUG ERROR] %player% — SQLException: %error%"
+  error_general: "[DEBUG ERROR] %player% — General error: %error%"
+  kick_db_error: "[DEBUG KICK] %player% kicked (db_error): %message%"
+  kick_general_error: "[DEBUG KICK] %player% kicked (general_error): %message%"
+  locale_join: "[DEBUG LOCALE] %player% joined. Client locale: '%clientLocale%' => Selected lang code: '%langCode%'"
+  locale_change: "[DEBUG LOCALE CHANGE] %player% changed locale to: '%newLocale%'"
+  locale_change_summary: "[DEBUG LOCALE CHANGE] New lang code: '%newLangCode%' — Available languages: %available%"
