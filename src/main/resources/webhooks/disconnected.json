@@ -1,0 +1,30 @@
+{
+  "content": null,
+  "embeds": [
+    {
+      "title": "Player Left",
+      "description": "%player% has left the server.",
+      "color": 16711680,
+      "fields": [
+        {
+          "name": "Player",
+          "value": "%player%",
+          "inline": true
+        },
+        {
+          "name": "Oka",
+          "value": "%reason%",
+          "inline": true
+        },
+        {
+          "name": "Idő",
+          "value": "%time%",
+          "inline": false
+        }
+      ],
+      "footer": {
+        "text": "DiscordLinker Plugin"
+      }
+    }
+  ]
+}

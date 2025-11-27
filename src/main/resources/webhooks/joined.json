@@ -1,0 +1,30 @@
+{
+  "content": "**@everyone** This is a test webhook!",
+  "embeds": [
+    {
+      "title": "Player Joined",
+      "description": "%player% has joined the server!",
+      "color": 65280,
+      "fields": [
+        {
+          "name": "Player",
+          "value": "%player%",
+          "inline": true
+        },
+        {
+          "name": "UUID",
+          "value": "%uuid%",
+          "inline": true
+        },
+        {
+          "name": "Time",
+          "value": "%time%",
+          "inline": false
+        }
+      ],
+      "footer": {
+        "text": "DiscordLinker Plugin"
+      }
+    }
+  ]
+}
