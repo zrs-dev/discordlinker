@@ -10,7 +10,7 @@ commands:
     description: Admin parancsok a DiscordLinker pluginhoz.
     usage: /<command> reload
     permission: discordlinker.reload
-    permission-message: '&c[Nincs jogosultságod a parancs használatához]'
+    permission-message: '&c[You do not have permission to use this command]'
 permissions:
   discordlinker.reload:
     description: Reload the DiscordLinker plugin configuration.
